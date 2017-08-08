@@ -1,0 +1,67 @@
+{
+  "name": "swinger",
+  "version": "1.0.0",
+  "description": "Aggregate multiple swagger specs into a single file. Useful when providing a combined definition for multiple microservices",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run lint && npm run test:unit",
+    "test:unit": "mocha --compilers ts:ts-node/register ./tests/*.spec.ts -R spec --bail",
+    "test:cov": "nyc npm run test:unit",
+    "test:report": "cat ./coverage/lcov.info | codacy-coverage --language typescript",
+    "lint": "tslint index.ts",
+    "build": "npm-run-all clean build:*",
+    "build:ts": "tsc",
+    "clean": "npm-run-all -p clean:*",
+    "clean:cov": "rimraf coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swimlane/swinger.git"
+  },
+  "keywords": [
+    "swagger",
+    "aggregate",
+    "typescript",
+    "microservices"
+  ],
+  "author": "Swimlane <dev@swimlane.com>",
+  "contributors": [
+    "Shaun Burdick <shaun.burdick@swimlane.com>"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/swimlane/swinger/issues"
+  },
+  "homepage": "https://github.com/swimlane/swinger#readme",
+  "devDependencies": {
+    "@types/chai": "^4.0.2",
+    "@types/mocha": "^2.2.41",
+    "@types/node": "^8.0.19",
+    "chai": "^4.1.1",
+    "mocha": "^3.5.0",
+    "nyc": "^11.1.0",
+    "ts-node": "^3.3.0",
+    "tslint": "^5.6.0",
+    "tslint-config-swimlane": "^3.0.2",
+    "typescript": "^2.4.2"
+  },
+  "nyc": {
+    "include": [
+      "index.ts"
+    ],
+    "exclude": [
+      "*.d.ts"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "lcov",
+      "html",
+      "text"
+    ]
+  }
+}
