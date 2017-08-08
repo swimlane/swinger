@@ -9,10 +9,7 @@
     "test:cov": "nyc npm run test:unit",
     "test:report": "cat ./coverage/lcov.info | codacy-coverage --language typescript",
     "lint": "tslint index.ts",
-    "build": "npm-run-all clean build:*",
-    "build:ts": "tsc",
-    "clean": "npm-run-all -p clean:*",
-    "clean:cov": "rimraf coverage"
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
