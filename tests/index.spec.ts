@@ -371,4 +371,37 @@ describe('Swinger Swagger Aggregator', () => {
       done();
     });
   });
+
+  describe('updateReferences', () => {
+    it('should update references', (done) => {
+      const replace = {
+        Foo: 'foo_Foo',
+        Bar: 'bar_Bar',
+        Fizz: 'bar_Fizz'
+      };
+
+      const before = {
+        $ref: '#/definitions/Foo',
+        arr: [ // should update any members
+          { $ref: '#/definitions/Bar' },
+          'string', // should leave alone
+          [ { $ref: '#/definitions/Fizz/Buzz'}]
+        ],
+        skip: true // should leave alone
+      };
+
+      const after = {
+        $ref: '#/definitions/foo_Foo',
+        arr: [
+          { $ref: '#/definitions/bar_Bar' },
+          'string',
+          [ { $ref: '#/definitions/bar_Fizz/Buzz'}]
+        ],
+        skip: true
+      };
+
+      expect(swinger.updateReferences(before, replace)).to.deep.equal(after);
+      done();
+    });
+  });
 });

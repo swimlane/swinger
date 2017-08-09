@@ -137,3 +137,18 @@ export declare function mergeDefinitions(left: SwaggerSpec, right: SwaggerSpec):
         [key: string]: string;
     };
 };
+/**
+ * Update any references ($ref) based on a map of old -> new keys
+ *
+ * @export
+ * @param {{ [key: string]: any }} target
+ * @param {{ [key: string]: string }} references
+ * @returns {{ [key: string]: any }}
+ */
+export declare function updateReferences(target: {
+    [key: string]: any;
+}, references: {
+    [key: string]: string;
+}): {
+    [key: string]: any;
+};

@@ -188,4 +188,38 @@ function mergeDefinitions(left, right) {
     };
 }
 exports.mergeDefinitions = mergeDefinitions;
+/**
+ * Update any references ($ref) based on a map of old -> new keys
+ *
+ * @export
+ * @param {{ [key: string]: any }} target
+ * @param {{ [key: string]: string }} references
+ * @returns {{ [key: string]: any }}
+ */
+function updateReferences(target, references) {
+    const type = typeof target;
+    // check for object
+    if (!(target !== null && (type === 'object' || type === 'function'))) {
+        return target; // it's not an object/array
+    }
+    else if (Array.isArray(target)) {
+        return target.map((val) => updateReferences(val, references));
+    }
+    else {
+        const definitionMatch = /\#\/definitions\/([^\/]+)/;
+        return Object.keys(target).reduce((newObj, key) => {
+            if (key === '$ref') {
+                const match = definitionMatch.exec(target[key]);
+                if (match && match.length === 2 && references.hasOwnProperty(match[1])) {
+                    newObj[key] = target[key].replace(match[1], references[match[1]]);
+                }
+            }
+            else {
+                newObj[key] = updateReferences(target[key], references);
+            }
+            return newObj;
+        }, {});
+    }
+}
+exports.updateReferences = updateReferences;
 //# sourceMappingURL=index.js.map
