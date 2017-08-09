@@ -7,9 +7,12 @@ exports.DuplicateSecurityDefinitionError = DuplicateSecurityDefinitionError;
 class DuplicatePathError extends Error {
 }
 exports.DuplicatePathError = DuplicatePathError;
-class DuplicateDefinitionsError extends Error {
+class DuplicateDefinitionError extends Error {
 }
-exports.DuplicateDefinitionsError = DuplicateDefinitionsError;
+exports.DuplicateDefinitionError = DuplicateDefinitionError;
+class DuplicateComponentErrors extends Error {
+}
+exports.DuplicateComponentErrors = DuplicateComponentErrors;
 /**
  * Merge an array of spec JSON objects into a single object.
  * The first object will be assumed as the base object to merge the others into from left to right
@@ -18,10 +21,12 @@ exports.DuplicateDefinitionsError = DuplicateDefinitionsError;
  * - Copy any `tags` members into the resulting object
  * - Copy any `securityDefinitions` members into the resulting object
  * - Check if `basePath` is set, if so it will prepend `basePath` to each member of `path`
- * - Prepend `info.title` to any members of `definitions`
+ * - Apply any global `security` settings to each path individually
+ * - Prepend `info.title` to any members of `definitions` and `components`
  * - Update any `$ref` to the renamed paths
  * - Copy all members of `path` into the resulting object
- * - Copy all memebrs of `definitions` into the resulting object
+ * - Copy all members of `definitions` into the resulting object
+ * - Copy all members of `components` into resulting object
  *
  * @export
  * @param {SwaggerSpec[]} specs an array of swagger specs
@@ -30,7 +35,8 @@ exports.DuplicateDefinitionsError = DuplicateDefinitionsError;
  * @throws DuplicateSecurityDefinitionError if there two security definitions with the same name
  *                                          but do not specify same rules
  * @throws DuplicatePathError if there are two specs that define the same path (after basePath has been added)
- * @throws DuplicateDefinitionsError if there are two definitions that share a name (after `info.title` has been added)
+ * @throws DuplicateDefinitionError if there are two definitions that share a name (after `info.title` has been added)
+ * @throws DuplicateComponentError if there are two components that share a name (after `info.title` has been added)
  */
 function merge(specs) {
     if (specs.length === 0) {
@@ -80,6 +86,7 @@ function mergeSecurityDefinitions(left, right) {
     }
     return resultSecObject;
 }
+exports.mergeSecurityDefinitions = mergeSecurityDefinitions;
 /**
  * Merge tags
  *
@@ -94,4 +101,28 @@ function mergeTags(left, right) {
     }
     return [...new Set(resultTags)]; // dedup
 }
+exports.mergeTags = mergeTags;
+/**
+ * Merge paths
+ *
+ * @export
+ * @param {SwaggerSpec} left
+ * @param {SwaggerSpec} right
+ * @returns {object}
+ */
+function mergePaths(left, right) {
+    const resultPaths = left.paths || {};
+    if (right.hasOwnProperty('paths')) {
+        const base = right.basePath || '';
+        for (const path in right.paths) {
+            const finalPath = base + path;
+            if (left.paths.hasOwnProperty(finalPath)) {
+                throw new DuplicatePathError(`Path ${finalPath} is redeclared in ${right.info.title}`);
+            }
+            resultPaths[finalPath] = right.paths[path];
+        }
+    }
+    return resultPaths;
+}
+exports.mergePaths = mergePaths;
 //# sourceMappingURL=index.js.map

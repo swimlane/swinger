@@ -2,17 +2,38 @@ import * as assert from 'assert';
 
 export class DuplicateSecurityDefinitionError extends Error {}
 export class DuplicatePathError extends Error {}
-export class DuplicateDefinitionsError extends Error {}
+export class DuplicateDefinitionError extends Error {}
+export class DuplicateComponentErrors extends Error {}
 
+/**
+ * Only the portions we care about at the moment
+ * A combination of 2.0 and 3.0 pieces to try and support both
+ *
+ * @export
+ * @interface SwaggerSpec
+ */
 export interface SwaggerSpec {
   info: {
     title: string;
   };
+  swagger?: string;
+  openapi?: string;
   securityDefinitions?: { [key: string]: object };
-  swagger: string;
+  security?: { [key: string]: object };
   basePath?: string;
   paths: { [key: string]: object };
   definitions?: { [key: string]: object };
+  components?: {
+    schemas: { [key: string]: object };
+    responses: { [key: string]: object };
+    parameters: { [key: string]: object };
+    examples: { [key: string]: object };
+    requestBodies: { [key: string]: object };
+    headers: { [key: string]: object };
+    securitySchemes: { [key: string]: object };
+    links: { [key: string]: object };
+    callbacks: { [key: string]: object };
+  };
   tags?: string[];
 }
 
@@ -24,10 +45,12 @@ export interface SwaggerSpec {
  * - Copy any `tags` members into the resulting object
  * - Copy any `securityDefinitions` members into the resulting object
  * - Check if `basePath` is set, if so it will prepend `basePath` to each member of `path`
- * - Prepend `info.title` to any members of `definitions`
+ * - Apply any global `security` settings to each path individually
+ * - Prepend `info.title` to any members of `definitions` and `components`
  * - Update any `$ref` to the renamed paths
  * - Copy all members of `path` into the resulting object
- * - Copy all memebrs of `definitions` into the resulting object
+ * - Copy all members of `definitions` into the resulting object
+ * - Copy all members of `components` into resulting object
  *
  * @export
  * @param {SwaggerSpec[]} specs an array of swagger specs
@@ -36,7 +59,8 @@ export interface SwaggerSpec {
  * @throws DuplicateSecurityDefinitionError if there two security definitions with the same name
  *                                          but do not specify same rules
  * @throws DuplicatePathError if there are two specs that define the same path (after basePath has been added)
- * @throws DuplicateDefinitionsError if there are two definitions that share a name (after `info.title` has been added)
+ * @throws DuplicateDefinitionError if there are two definitions that share a name (after `info.title` has been added)
+ * @throws DuplicateComponentError if there are two components that share a name (after `info.title` has been added)
  */
 export function merge(specs: SwaggerSpec[]): SwaggerSpec {
   if (specs.length === 0) {
@@ -70,7 +94,7 @@ export function merge(specs: SwaggerSpec[]): SwaggerSpec {
  * @param {SwaggerSpec} right
  * @returns {{ [key: string]: object }}
  */
-function mergeSecurityDefinitions(left: SwaggerSpec, right: SwaggerSpec): { [key: string]: object } {
+export function mergeSecurityDefinitions(left: SwaggerSpec, right: SwaggerSpec): { [key: string]: object } {
   const resultSecObject = left.securityDefinitions || {};
 
   if (right.hasOwnProperty('securityDefinitions')) {
@@ -100,7 +124,7 @@ function mergeSecurityDefinitions(left: SwaggerSpec, right: SwaggerSpec): { [key
  * @param {SwaggerSpec} right
  * @returns {string[]}
  */
-function mergeTags(left: SwaggerSpec, right: SwaggerSpec): string[] {
+export function mergeTags(left: SwaggerSpec, right: SwaggerSpec): string[] {
   const resultTags = left.tags || [];
 
   if (right.hasOwnProperty('tags')) {
@@ -108,4 +132,30 @@ function mergeTags(left: SwaggerSpec, right: SwaggerSpec): string[] {
   }
 
   return [...new Set(resultTags)]; // dedup
+}
+
+/**
+ * Merge paths
+ *
+ * @export
+ * @param {SwaggerSpec} left
+ * @param {SwaggerSpec} right
+ * @returns {object}
+ */
+export function mergePaths(left: SwaggerSpec, right: SwaggerSpec): object {
+  const resultPaths = left.paths || {};
+
+  if (right.hasOwnProperty('paths')) {
+    const base = right.basePath || '';
+    for(const path in right.paths) {
+      const finalPath = base + path;
+      if (left.paths.hasOwnProperty(finalPath)) {
+        throw new DuplicatePathError(`Path ${finalPath} is redeclared in ${right.info.title}`);
+      }
+
+      resultPaths[finalPath] = right.paths[path];
+    }
+  }
+
+  return resultPaths;
 }

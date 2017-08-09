@@ -2,22 +2,64 @@ export declare class DuplicateSecurityDefinitionError extends Error {
 }
 export declare class DuplicatePathError extends Error {
 }
-export declare class DuplicateDefinitionsError extends Error {
+export declare class DuplicateDefinitionError extends Error {
 }
+export declare class DuplicateComponentErrors extends Error {
+}
+/**
+ * Only the portions we care about at the moment
+ * A combination of 2.0 and 3.0 pieces to try and support both
+ *
+ * @export
+ * @interface SwaggerSpec
+ */
 export interface SwaggerSpec {
     info: {
         title: string;
     };
+    swagger?: string;
+    openapi?: string;
     securityDefinitions?: {
         [key: string]: object;
     };
-    swagger: string;
+    security?: {
+        [key: string]: object;
+    };
     basePath?: string;
     paths: {
         [key: string]: object;
     };
     definitions?: {
         [key: string]: object;
+    };
+    components?: {
+        schemas: {
+            [key: string]: object;
+        };
+        responses: {
+            [key: string]: object;
+        };
+        parameters: {
+            [key: string]: object;
+        };
+        examples: {
+            [key: string]: object;
+        };
+        requestBodies: {
+            [key: string]: object;
+        };
+        headers: {
+            [key: string]: object;
+        };
+        securitySchemes: {
+            [key: string]: object;
+        };
+        links: {
+            [key: string]: object;
+        };
+        callbacks: {
+            [key: string]: object;
+        };
     };
     tags?: string[];
 }
@@ -29,10 +71,12 @@ export interface SwaggerSpec {
  * - Copy any `tags` members into the resulting object
  * - Copy any `securityDefinitions` members into the resulting object
  * - Check if `basePath` is set, if so it will prepend `basePath` to each member of `path`
- * - Prepend `info.title` to any members of `definitions`
+ * - Apply any global `security` settings to each path individually
+ * - Prepend `info.title` to any members of `definitions` and `components`
  * - Update any `$ref` to the renamed paths
  * - Copy all members of `path` into the resulting object
- * - Copy all memebrs of `definitions` into the resulting object
+ * - Copy all members of `definitions` into the resulting object
+ * - Copy all members of `components` into resulting object
  *
  * @export
  * @param {SwaggerSpec[]} specs an array of swagger specs
@@ -41,6 +85,34 @@ export interface SwaggerSpec {
  * @throws DuplicateSecurityDefinitionError if there two security definitions with the same name
  *                                          but do not specify same rules
  * @throws DuplicatePathError if there are two specs that define the same path (after basePath has been added)
- * @throws DuplicateDefinitionsError if there are two definitions that share a name (after `info.title` has been added)
+ * @throws DuplicateDefinitionError if there are two definitions that share a name (after `info.title` has been added)
+ * @throws DuplicateComponentError if there are two components that share a name (after `info.title` has been added)
  */
 export declare function merge(specs: SwaggerSpec[]): SwaggerSpec;
+/**
+ * Merge swagger security definitions
+ *
+ * @param {SwaggerSpec} left
+ * @param {SwaggerSpec} right
+ * @returns {{ [key: string]: object }}
+ */
+export declare function mergeSecurityDefinitions(left: SwaggerSpec, right: SwaggerSpec): {
+    [key: string]: object;
+};
+/**
+ * Merge tags
+ *
+ * @param {SwaggerSpec} left
+ * @param {SwaggerSpec} right
+ * @returns {string[]}
+ */
+export declare function mergeTags(left: SwaggerSpec, right: SwaggerSpec): string[];
+/**
+ * Merge paths
+ *
+ * @export
+ * @param {SwaggerSpec} left
+ * @param {SwaggerSpec} right
+ * @returns {object}
+ */
+export declare function mergePaths(left: SwaggerSpec, right: SwaggerSpec): object;
