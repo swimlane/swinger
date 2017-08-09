@@ -105,7 +105,7 @@ describe('Swinger Swagger Aggregator', () => {
                   $ref: '#/definitions/BarResponse'
                 },
                 default: {
-                  $ref: '#/definitions/BarError'
+                  $ref: '#/definitions/FooError'
                 }
               }
             }
@@ -125,6 +125,7 @@ describe('Swinger Swagger Aggregator', () => {
           }
         },
         definitions: {
+          FooError: { type: 'string' },
           BarError: { type: 'number' },
           BarResponse: { type: 'string' },
           stuff: {
@@ -162,7 +163,7 @@ describe('Swinger Swagger Aggregator', () => {
               description: 'spec2',
               response: {
                 200: {
-                  $ref: '#/definitions/spec2_FooResponse'
+                  $ref: '#/definitions/FooResponse'
                 },
                 default: {
                   $ref: '#/definitions/spec2_FooError'
@@ -181,10 +182,10 @@ describe('Swinger Swagger Aggregator', () => {
               description: 'spec3',
               response: {
                 200: {
-                  $ref: '#/definitions/spec3_BarResponse'
+                  $ref: '#/definitions/BarResponse'
                 },
                 default: {
-                  $ref: '#/definitions/spec3_BarError'
+                  $ref: '#/definitions/FooError'
                 }
               }
             }
@@ -196,7 +197,7 @@ describe('Swinger Swagger Aggregator', () => {
                 default: {
                   type: 'array',
                   items: {
-                    $ref: '#/definitions/spec3_stuff/things'
+                    $ref: '#/definitions/stuff/things'
                   }
                 }
               }
@@ -210,16 +211,16 @@ describe('Swinger Swagger Aggregator', () => {
           spec2_FooError: {
             type: 'number'
           },
-          spec2_FooResponse: {
+          FooResponse: {
             type: 'string'
           },
-          spec3_BarError: {
+          BarError: {
             type: 'number'
           },
-          spec3_BarResponse: {
+          BarResponse: {
             type: 'string'
           },
-          spec3_stuff: {
+          stuff: {
             things: {
               type: 'boolean'
             }
@@ -522,6 +523,9 @@ describe('Swinger Swagger Aggregator', () => {
         definitions: {
           Foo: {
             type: 'string'
+          },
+          Bar: {
+            type: 'number'
           }
         }
       };
@@ -531,8 +535,11 @@ describe('Swinger Swagger Aggregator', () => {
         swagger: '2.0',
         paths: {},
         definitions: {
+          Foo: {
+            type: 'number'
+          },
           Bar: {
-            type: 'string'
+            type: 'number'
           }
         }
       };
@@ -542,12 +549,15 @@ describe('Swinger Swagger Aggregator', () => {
         Foo: {
           type: 'string'
         },
-        bar_Bar: {
-          type: 'string'
+        bar_Foo: {
+          type: 'number'
+        },
+        Bar: {
+          type: 'number'
         }
       });
       expect(merged.references).to.deep.equal({
-        Bar: 'bar_Bar'
+        Foo: 'bar_Foo'
       });
 
       done();
@@ -559,6 +569,9 @@ describe('Swinger Swagger Aggregator', () => {
         swagger: '2.0',
         paths: {},
         definitions: {
+          Bar: {
+            type: 'number',
+          },
           bar_Bar: {
             type: 'string'
           }
@@ -595,7 +608,8 @@ describe('Swinger Swagger Aggregator', () => {
         arr: [ // should update any members
           { $ref: '#/definitions/Bar' },
           'string', // should leave alone
-          [ { $ref: '#/definitions/Fizz/Buzz'}]
+          [ { $ref: '#/definitions/Fizz/Buzz'} ],
+          { $ref: '#/definitions/Buzz' } // should leave alone as non-mathing reference
         ],
         skip: true // should leave alone
       };
@@ -605,7 +619,8 @@ describe('Swinger Swagger Aggregator', () => {
         arr: [
           { $ref: '#/definitions/bar_Bar' },
           'string',
-          [ { $ref: '#/definitions/bar_Fizz/Buzz'}]
+          [ { $ref: '#/definitions/bar_Fizz/Buzz'}],
+          { $ref: '#/definitions/Buzz' }
         ],
         skip: true
       };

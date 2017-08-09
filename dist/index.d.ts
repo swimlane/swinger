@@ -74,7 +74,7 @@ export interface SwaggerSpec {
  * - Copy any `securityDefinitions` members into the resulting object
  * - Check if `basePath` is set, if so it will prepend `basePath` to each member of `path`
  * - Apply any global `security` settings to each path individually
- * - Prepend `info.title` to any members of `definitions` and `components`
+ * - Prepend `info.title` to any members of `definitions` and `components` if there are collisions
  * - Update any `$ref` to the renamed paths
  * - Copy all members of `path` into the resulting object
  * - Copy all members of `definitions` into the resulting object

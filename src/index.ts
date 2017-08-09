@@ -47,7 +47,7 @@ export interface SwaggerSpec {
  * - Copy any `securityDefinitions` members into the resulting object
  * - Check if `basePath` is set, if so it will prepend `basePath` to each member of `path`
  * - Apply any global `security` settings to each path individually
- * - Prepend `info.title` to any members of `definitions` and `components`
+ * - Prepend `info.title` to any members of `definitions` and `components` if there are collisions
  * - Update any `$ref` to the renamed paths
  * - Copy all members of `path` into the resulting object
  * - Copy all members of `definitions` into the resulting object
@@ -224,14 +224,26 @@ export function mergeDefinitions(left: SwaggerSpec, right: SwaggerSpec):
   if (right.hasOwnProperty('definitions')) {
     const prefix = right.info.title || '';
     for (const definitionName in right.definitions) {
-      resultReferences[definitionName] = `${prefix}_${definitionName}`;
-      if (resultDefinitions.hasOwnProperty(resultReferences[definitionName])) {
+      let finalDefinitionName = definitionName;
+      // only rename if there is a collision
+      if (resultDefinitions.hasOwnProperty(finalDefinitionName)) {
+        // if their signatures are the same, we can skip it and reuse the current one
+        try {
+          assert.deepEqual(resultDefinitions[finalDefinitionName], right.definitions[definitionName]);
+          continue; // on to the next one
+        } catch (err) {
+          finalDefinitionName = `${prefix}_${definitionName}`;
+          resultReferences[definitionName] = finalDefinitionName;
+        }
+      }
+
+      if (resultDefinitions.hasOwnProperty(finalDefinitionName)) {
         throw new DuplicateDefinitionError(
-          `Definition ${resultReferences[definitionName]} is redeclared in ${right.info.title}`
+          `Definition ${finalDefinitionName} is redeclared in ${right.info.title}`
         );
       }
 
-      resultDefinitions[resultReferences[definitionName]] = right.definitions[definitionName];
+      resultDefinitions[finalDefinitionName] = right.definitions[definitionName];
     }
   }
 
@@ -269,6 +281,8 @@ export function updateReferences(target: { [key: string]: any }, references: { [
           const match = definitionMatch.exec(target[key]);
           if (match && match.length === 2 && references.hasOwnProperty(match[1])) {
             newObj[key] = target[key].replace(match[1], references[match[1]]);
+          } else {
+            newObj[key] = target[key];
           }
         } else {
           newObj[key] = updateReferences(target[key], references);
