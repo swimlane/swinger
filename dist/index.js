@@ -70,8 +70,14 @@ function merge(specs) {
         if (currentSpec.hasOwnProperty('securityDefinitions')) {
             resultSpec.securityDefinitions = mergeSecurityDefinitions(resultSpec, currentSpec);
         }
+        let referenceUpdates = {};
+        if (currentSpec.hasOwnProperty('definitions')) {
+            const mergedDefinitions = mergeDefinitions(resultSpec, currentSpec);
+            referenceUpdates = mergedDefinitions.references;
+            resultSpec.definitions = updateReferences(mergedDefinitions.definitions, referenceUpdates);
+        }
         // paths is required in both versions, so no need to check
-        resultSpec.paths = mergePaths(resultSpec, currentSpec);
+        resultSpec.paths = mergePaths(resultSpec, updateReferences(currentSpec, referenceUpdates));
     }
     return resultSpec;
 }
@@ -197,6 +203,10 @@ exports.mergeDefinitions = mergeDefinitions;
  * @returns {{ [key: string]: any }}
  */
 function updateReferences(target, references) {
+    // check for empty references and just return
+    if (Object.keys(references).length === 0) {
+        return target; // nothing to do
+    }
     const type = typeof target;
     // check for object
     if (!(target !== null && (type === 'object' || type === 'function'))) {

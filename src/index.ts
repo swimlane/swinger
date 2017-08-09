@@ -101,8 +101,15 @@ export function merge(specs: SwaggerSpec[]): SwaggerSpec {
       resultSpec.securityDefinitions = mergeSecurityDefinitions(resultSpec, currentSpec);
     }
 
+    let referenceUpdates = {};
+    if (currentSpec.hasOwnProperty('definitions')) {
+      const mergedDefinitions = mergeDefinitions(resultSpec, currentSpec);
+      referenceUpdates = mergedDefinitions.references;
+      resultSpec.definitions = updateReferences(mergedDefinitions.definitions, referenceUpdates);
+    }
+
     // paths is required in both versions, so no need to check
-    resultSpec.paths = mergePaths(resultSpec, currentSpec);
+    resultSpec.paths = mergePaths(resultSpec, updateReferences(currentSpec, referenceUpdates) as SwaggerSpec);
   }
 
   return resultSpec;
@@ -244,6 +251,11 @@ export function mergeDefinitions(left: SwaggerSpec, right: SwaggerSpec):
  */
 export function updateReferences(target: { [key: string]: any }, references: { [key: string]: string }):
   { [key: string]: any } {
+    // check for empty references and just return
+    if (Object.keys(references).length === 0) {
+      return target; // nothing to do
+    }
+
     const type = typeof target;
     // check for object
     if (!(target !== null && (type === 'object' || type === 'function'))) {

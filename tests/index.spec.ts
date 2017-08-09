@@ -38,6 +38,204 @@ describe('Swinger Swagger Aggregator', () => {
       expect(() => swinger.merge([versionSpec2, versionSpec1])).to.throw(swinger.VersionMismatchError);
       done();
     });
+
+    it('should merge multiple objects', (done) => {
+      const spec1 = {
+        info: {
+          title: 'spec1'
+        },
+        swagger: '2.0',
+        securityDefinitions: {
+          jwt: { in: 'header', schema: 'Bearer', type: 'http' }
+        },
+        security: { jwt: [ 'write' ] },
+        basePath: '/api',
+        paths: {},
+        definitions: {
+          FooError: { type: 'string' }
+        },
+        tags: [ 'spec1Tag' ]
+      };
+
+      const spec2 = {
+        info: {
+          title: 'spec2'
+        },
+        swagger: '2.0',
+        securityDefinitions: {
+          jwt: { in: 'header', schema: 'Bearer', type: 'http' },
+          basic: { in: 'header', type: 'http' }
+        },
+        security: { jwt: [ 'read', 'write' ] },
+        basePath: '/spec2',
+        paths: {
+          '/foo': {
+            get: {
+              description: 'spec2',
+              response: {
+                200: {
+                  $ref: '#/definitions/FooResponse'
+                },
+                default: {
+                  $ref: '#/definitions/FooError'
+                }
+              }
+            }
+          }
+        },
+        definitions: {
+          FooError: { type: 'number' },
+          FooResponse: { type: 'string' }
+        },
+        tags: [ 'spec2Tag' ]
+      };
+
+      const spec3 = {
+        info: {
+          title: 'spec3'
+        },
+        swagger: '2.0',
+        basePath: '/spec3',
+        paths: {
+          '/bar': {
+            get: {
+              description: 'spec3',
+              response: {
+                200: {
+                  $ref: '#/definitions/BarResponse'
+                },
+                default: {
+                  $ref: '#/definitions/BarError'
+                }
+              }
+            }
+          },
+          '/fizz': {
+            get: {
+              description: 'spec3',
+              response: {
+                default: {
+                  type: 'array',
+                  items: {
+                    $ref: '#/definitions/stuff/things'
+                  }
+                }
+              }
+            }
+          }
+        },
+        definitions: {
+          BarError: { type: 'number' },
+          BarResponse: { type: 'string' },
+          stuff: {
+            things: { type: 'boolean' }
+          }
+        },
+        tags: [ 'spec2Tag', 'spec3Tag' ]
+      };
+
+      const resultSpec = {
+        info: {
+          title: 'spec1'
+        },
+        swagger: '2.0',
+        securityDefinitions: {
+          jwt: {
+            in: 'header',
+            schema: 'Bearer',
+            type: 'http'
+          },
+          basic: {
+            in: 'header',
+            type: 'http'
+          }
+        },
+        security: {
+          jwt: [
+            'write'
+          ]
+        },
+        basePath: '/api',
+        paths: {
+          '/spec2/foo': {
+            get: {
+              description: 'spec2',
+              response: {
+                200: {
+                  $ref: '#/definitions/spec2_FooResponse'
+                },
+                default: {
+                  $ref: '#/definitions/spec2_FooError'
+                }
+              },
+              security: {
+                jwt: [
+                  'read',
+                  'write'
+                ]
+              }
+            }
+          },
+          '/spec3/bar': {
+            get: {
+              description: 'spec3',
+              response: {
+                200: {
+                  $ref: '#/definitions/spec3_BarResponse'
+                },
+                default: {
+                  $ref: '#/definitions/spec3_BarError'
+                }
+              }
+            }
+          },
+          '/spec3/fizz': {
+            get: {
+              description: 'spec3',
+              response: {
+                default: {
+                  type: 'array',
+                  items: {
+                    $ref: '#/definitions/spec3_stuff/things'
+                  }
+                }
+              }
+            }
+          }
+        },
+        definitions: {
+          FooError: {
+            type: 'string'
+          },
+          spec2_FooError: {
+            type: 'number'
+          },
+          spec2_FooResponse: {
+            type: 'string'
+          },
+          spec3_BarError: {
+            type: 'number'
+          },
+          spec3_BarResponse: {
+            type: 'string'
+          },
+          spec3_stuff: {
+            things: {
+              type: 'boolean'
+            }
+          }
+        },
+        tags: [
+          'spec1Tag',
+          'spec2Tag',
+          'spec3Tag'
+        ]
+      };
+
+      const merged = swinger.merge([spec1, spec2, spec3]);
+      expect(merged).to.deep.equal(resultSpec);
+      done();
+    });
   });
 
   describe('securityDefinitions', () => {
@@ -103,7 +301,7 @@ describe('Swinger Swagger Aggregator', () => {
     });
 
     it('shouldn\'t throw an error if you have the same duplicate security definitions', (done) => {
-      const secSpec = {
+      const secSpec1 = {
         info: { title: 'foo' },
         swagger: '2.0',
         paths: {},
@@ -115,8 +313,20 @@ describe('Swinger Swagger Aggregator', () => {
         }
       };
 
-      const merged = swinger.mergeSecurityDefinitions(secSpec, secSpec);
-      expect(merged).to.deep.equal(secSpec.securityDefinitions);
+      const secSpec2 = {
+        info: { title: 'bar' },
+        swagger: '2.0',
+        paths: {},
+        securityDefinitions: {
+          basic: {
+            type: 'http',
+            scheme: 'basic'
+          }
+        }
+      };
+
+      const merged = swinger.mergeSecurityDefinitions(secSpec1, secSpec2);
+      expect(merged).to.deep.equal(secSpec1.securityDefinitions);
       done();
     });
   });
@@ -401,6 +611,21 @@ describe('Swinger Swagger Aggregator', () => {
       };
 
       expect(swinger.updateReferences(before, replace)).to.deep.equal(after);
+      done();
+    });
+
+    it('should do nothing if no references are passed', (done) => {
+      const before = {
+        $ref: '#/definitions/Foo',
+        arr: [ // should update any members
+          { $ref: '#/definitions/Bar' },
+          'string', // should leave alone
+          [ { $ref: '#/definitions/Fizz/Buzz'}]
+        ],
+        skip: true // should leave alone
+      };
+
+      expect(swinger.updateReferences(before, {})).to.deep.equal(before);
       done();
     });
   });
