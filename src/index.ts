@@ -3,7 +3,6 @@ import * as assert from 'assert';
 export class DuplicateSecurityDefinitionError extends Error {}
 export class DuplicatePathError extends Error {}
 export class DuplicateDefinitionError extends Error {}
-export class DuplicateComponentError extends Error {}
 export class VersionMismatchError extends Error {}
 
 /**
@@ -24,17 +23,6 @@ export interface SwaggerSpec {
   basePath?: string;
   paths: { [key: string]: object };
   definitions?: { [key: string]: object };
-  components?: {
-    schemas: { [key: string]: object };
-    responses: { [key: string]: object };
-    parameters: { [key: string]: object };
-    examples: { [key: string]: object };
-    requestBodies: { [key: string]: object };
-    headers: { [key: string]: object };
-    securitySchemes: { [key: string]: object };
-    links: { [key: string]: object };
-    callbacks: { [key: string]: object };
-  };
   tags?: string[];
 }
 
@@ -47,11 +35,10 @@ export interface SwaggerSpec {
  * - Copy any `securityDefinitions` members into the resulting object
  * - Check if `basePath` is set, if so it will prepend `basePath` to each member of `path`
  * - Apply any global `security` settings to each path individually
- * - Prepend `info.title` to any members of `definitions` and `components` if there are collisions
+ * - Prepend `info.title` to any members of `definitions` if there are collisions
  * - Update any `$ref` to the renamed paths
  * - Copy all members of `path` into the resulting object
  * - Copy all members of `definitions` into the resulting object
- * - Copy all members of `components` into resulting object
  *
  * @export
  * @param {SwaggerSpec[]} specs an array of swagger specs
@@ -62,7 +49,6 @@ export interface SwaggerSpec {
  *                                          but do not specify same rules
  * @throws DuplicatePathError if there are two specs that define the same path (after basePath has been added)
  * @throws DuplicateDefinitionError if there are two definitions that share a name (after `info.title` has been added)
- * @throws DuplicateComponentError if there are two components that share a name (after `info.title` has been added)
  */
 export function merge(specs: SwaggerSpec[]): SwaggerSpec {
   if (specs.length === 0) {

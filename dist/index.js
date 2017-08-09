@@ -10,9 +10,6 @@ exports.DuplicatePathError = DuplicatePathError;
 class DuplicateDefinitionError extends Error {
 }
 exports.DuplicateDefinitionError = DuplicateDefinitionError;
-class DuplicateComponentError extends Error {
-}
-exports.DuplicateComponentError = DuplicateComponentError;
 class VersionMismatchError extends Error {
 }
 exports.VersionMismatchError = VersionMismatchError;
@@ -25,11 +22,10 @@ exports.VersionMismatchError = VersionMismatchError;
  * - Copy any `securityDefinitions` members into the resulting object
  * - Check if `basePath` is set, if so it will prepend `basePath` to each member of `path`
  * - Apply any global `security` settings to each path individually
- * - Prepend `info.title` to any members of `definitions` and `components` if there are collisions
+ * - Prepend `info.title` to any members of `definitions` if there are collisions
  * - Update any `$ref` to the renamed paths
  * - Copy all members of `path` into the resulting object
  * - Copy all members of `definitions` into the resulting object
- * - Copy all members of `components` into resulting object
  *
  * @export
  * @param {SwaggerSpec[]} specs an array of swagger specs
@@ -40,7 +36,6 @@ exports.VersionMismatchError = VersionMismatchError;
  *                                          but do not specify same rules
  * @throws DuplicatePathError if there are two specs that define the same path (after basePath has been added)
  * @throws DuplicateDefinitionError if there are two definitions that share a name (after `info.title` has been added)
- * @throws DuplicateComponentError if there are two components that share a name (after `info.title` has been added)
  */
 function merge(specs) {
     if (specs.length === 0) {

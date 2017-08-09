@@ -10,7 +10,7 @@ Swinger merges multiple swagger specifications into a single file. This allows y
 
 - Merges any number of specifications
 - Applies `basePath` (swagger 2.0) and `security` globals to every path before merging
-- Namespaces `definitions` (swagger 2.0) and `components` (openapi 3.0) if there are collisions
+- Namespaces `definitions` (swagger 2.0) if there are collisions
 - Updates references (`$ref`) to include proper namespace
 - Merges and deduplicates `tags`
 - Merges `securityDefinitions` (swagger 2.0), deduplicating when named entry is shared between specs
