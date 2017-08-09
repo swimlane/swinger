@@ -18,14 +18,14 @@
     "allowSyntheticDefaultImports": true,
     "suppressExcessPropertyErrors": true,
     "suppressImplicitAnyIndexErrors": true,
-    "outDir": ".",
+    "outDir": "dist",
     "types": [
       "node",
       "mocha"
     ]
   },
   "include": [
-    "index.ts"
+    "src/"
   ],
   "exclude": [
     "node_modules"

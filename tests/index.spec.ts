@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import * as swinger from '../index';
+import * as swinger from '../src';
 
 describe('Swinger Swagger Aggregator', () => {
-  describe('Merge', () => {
+  describe('merge', () => {
     it('should throw an error if you pass an empty array', (done) => {
       expect(() => swinger.merge([])).to.throw(Error, /You must pass at least one swagger spec/);
       done();
@@ -298,6 +298,75 @@ describe('Swinger Swagger Aggregator', () => {
             }
           }
       });
+
+      done();
+    });
+  });
+
+  describe('definitions', () => {
+    it('should merge definitions, namespacing them by title', (done) => {
+      const defSpec1 = {
+        info: { title: 'foo' },
+        swagger: '2.0',
+        paths: {},
+        definitions: {
+          Foo: {
+            type: 'string'
+          }
+        }
+      };
+
+      const defSpec2 = {
+        info: { title: 'bar' },
+        swagger: '2.0',
+        paths: {},
+        definitions: {
+          Bar: {
+            type: 'string'
+          }
+        }
+      };
+
+      const merged = swinger.mergeDefinitions(defSpec1, defSpec2);
+      expect(merged.definitions).to.deep.equal({
+        Foo: {
+          type: 'string'
+        },
+        bar_Bar: {
+          type: 'string'
+        }
+      });
+      expect(merged.references).to.deep.equal({
+        Bar: 'bar_Bar'
+      });
+
+      done();
+    });
+
+    it('should should throw an error if there is a duplicate definition', (done) => {
+      const defSpec1 = {
+        info: { title: 'foo' },
+        swagger: '2.0',
+        paths: {},
+        definitions: {
+          bar_Bar: {
+            type: 'string'
+          }
+        }
+      };
+
+      const defSpec2 = {
+        info: { title: 'bar' },
+        swagger: '2.0',
+        paths: {},
+        definitions: {
+          Bar: {
+            type: 'string'
+          }
+        }
+      };
+
+      expect(() => swinger.mergeDefinitions(defSpec1, defSpec2)).to.throw(swinger.DuplicateDefinitionError);
 
       done();
     });

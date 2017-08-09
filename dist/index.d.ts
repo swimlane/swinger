@@ -121,3 +121,19 @@ export declare function mergeTags(left: SwaggerSpec, right: SwaggerSpec): string
 export declare function mergePaths(left: SwaggerSpec, right: SwaggerSpec): {
     [key: string]: object;
 };
+/**
+ * Merge definitions and return both the definitions and any references that need updating
+ *
+ * @export
+ * @param {SwaggerSpec} left
+ * @param {SwaggerSpec} right
+ * @returns {{ definitions: { [key: string]: any }, references: { [key: string]: string } }}
+ */
+export declare function mergeDefinitions(left: SwaggerSpec, right: SwaggerSpec): {
+    definitions: {
+        [key: string]: any;
+    };
+    references: {
+        [key: string]: string;
+    };
+};

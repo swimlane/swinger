@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Aggregate multiple swagger specs into a single file. Useful when providing a combined definition for multiple microservices",
   "main": "index.js",
-  "types": "index.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "npm run lint && npm run test:unit",
     "test:unit": "mocha --compilers ts:ts-node/register ./tests/*.spec.ts -R spec --bail",
@@ -45,10 +45,7 @@
   },
   "nyc": {
     "include": [
-      "index.ts"
-    ],
-    "exclude": [
-      "*.d.ts"
+      "src/index.ts"
     ],
     "extension": [
       ".ts"
