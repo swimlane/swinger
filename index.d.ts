@@ -4,7 +4,9 @@ export declare class DuplicatePathError extends Error {
 }
 export declare class DuplicateDefinitionError extends Error {
 }
-export declare class DuplicateComponentErrors extends Error {
+export declare class DuplicateComponentError extends Error {
+}
+export declare class VersionMismatchError extends Error {
 }
 /**
  * Only the portions we care about at the moment
@@ -82,6 +84,7 @@ export interface SwaggerSpec {
  * @param {SwaggerSpec[]} specs an array of swagger specs
  * @returns {SwaggerSpec} The resulting merged spec
  * @throws Error if specs argument is empty
+ * @throws VersionMismatchError if you try to merge specs that are different versions
  * @throws DuplicateSecurityDefinitionError if there two security definitions with the same name
  *                                          but do not specify same rules
  * @throws DuplicatePathError if there are two specs that define the same path (after basePath has been added)

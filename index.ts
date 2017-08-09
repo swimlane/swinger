@@ -3,7 +3,8 @@ import * as assert from 'assert';
 export class DuplicateSecurityDefinitionError extends Error {}
 export class DuplicatePathError extends Error {}
 export class DuplicateDefinitionError extends Error {}
-export class DuplicateComponentErrors extends Error {}
+export class DuplicateComponentError extends Error {}
+export class VersionMismatchError extends Error {}
 
 /**
  * Only the portions we care about at the moment
@@ -56,6 +57,7 @@ export interface SwaggerSpec {
  * @param {SwaggerSpec[]} specs an array of swagger specs
  * @returns {SwaggerSpec} The resulting merged spec
  * @throws Error if specs argument is empty
+ * @throws VersionMismatchError if you try to merge specs that are different versions
  * @throws DuplicateSecurityDefinitionError if there two security definitions with the same name
  *                                          but do not specify same rules
  * @throws DuplicatePathError if there are two specs that define the same path (after basePath has been added)
@@ -74,6 +76,20 @@ export function merge(specs: SwaggerSpec[]): SwaggerSpec {
 
   for (let i = 1; i < specs.length; i++) {
     const currentSpec = Object.assign({}, specs[i]); // clone the object
+
+    // 2.0
+    if (resultSpec.hasOwnProperty('swagger') &&
+      (!currentSpec.hasOwnProperty('swagger') || resultSpec.swagger !== currentSpec.swagger)
+    ) {
+      throw new VersionMismatchError(`${currentSpec.info.title} does not match the final spec version`);
+    }
+
+    // 3.0
+    if (resultSpec.hasOwnProperty('openapi') &&
+      (!currentSpec.hasOwnProperty('openapi') || resultSpec.openapi !== currentSpec.openapi)
+    ) {
+      throw new VersionMismatchError(`${currentSpec.info.title} does not match the final spec version`);
+    }
 
     if (currentSpec.hasOwnProperty('tags')) {
       resultSpec.tags = mergeTags(resultSpec, currentSpec);

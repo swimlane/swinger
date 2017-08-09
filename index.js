@@ -10,9 +10,12 @@ exports.DuplicatePathError = DuplicatePathError;
 class DuplicateDefinitionError extends Error {
 }
 exports.DuplicateDefinitionError = DuplicateDefinitionError;
-class DuplicateComponentErrors extends Error {
+class DuplicateComponentError extends Error {
 }
-exports.DuplicateComponentErrors = DuplicateComponentErrors;
+exports.DuplicateComponentError = DuplicateComponentError;
+class VersionMismatchError extends Error {
+}
+exports.VersionMismatchError = VersionMismatchError;
 /**
  * Merge an array of spec JSON objects into a single object.
  * The first object will be assumed as the base object to merge the others into from left to right
@@ -32,6 +35,7 @@ exports.DuplicateComponentErrors = DuplicateComponentErrors;
  * @param {SwaggerSpec[]} specs an array of swagger specs
  * @returns {SwaggerSpec} The resulting merged spec
  * @throws Error if specs argument is empty
+ * @throws VersionMismatchError if you try to merge specs that are different versions
  * @throws DuplicateSecurityDefinitionError if there two security definitions with the same name
  *                                          but do not specify same rules
  * @throws DuplicatePathError if there are two specs that define the same path (after basePath has been added)
@@ -48,6 +52,16 @@ function merge(specs) {
     }
     for (let i = 1; i < specs.length; i++) {
         const currentSpec = Object.assign({}, specs[i]); // clone the object
+        // 2.0
+        if (resultSpec.hasOwnProperty('swagger') &&
+            (!currentSpec.hasOwnProperty('swagger') || resultSpec.swagger !== currentSpec.swagger)) {
+            throw new VersionMismatchError(`${currentSpec.info.title} does not match the final spec version`);
+        }
+        // 3.0
+        if (resultSpec.hasOwnProperty('openapi') &&
+            (!currentSpec.hasOwnProperty('openapi') || resultSpec.openapi !== currentSpec.openapi)) {
+            throw new VersionMismatchError(`${currentSpec.info.title} does not match the final spec version`);
+        }
         if (currentSpec.hasOwnProperty('tags')) {
             resultSpec.tags = mergeTags(resultSpec, currentSpec);
         }

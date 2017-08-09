@@ -18,6 +18,26 @@ describe('Swinger Swagger Aggregator', () => {
       expect(swinger.merge([testObj])).to.deep.equal(testObj);
       done();
     });
+
+    it('should throw an error if there is a version mismatch', (done) => {
+      const versionSpec1 = {
+        info: { title: 'foo' },
+        openapi: '3.0.0',
+        paths: {},
+        tags: [ 'foo' ]
+      };
+
+      const versionSpec2 = {
+        info: { title: 'foo' },
+        swagger: '2.0',
+        paths: {},
+        tags: [ 'bar' ]
+      };
+
+      expect(() => swinger.merge([versionSpec1, versionSpec2])).to.throw(swinger.VersionMismatchError);
+      expect(() => swinger.merge([versionSpec2, versionSpec1])).to.throw(swinger.VersionMismatchError);
+      done();
+    });
   });
 
   describe('securityDefinitions', () => {
