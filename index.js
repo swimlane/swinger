@@ -54,6 +54,8 @@ function merge(specs) {
         if (currentSpec.hasOwnProperty('securityDefinitions')) {
             resultSpec.securityDefinitions = mergeSecurityDefinitions(resultSpec, currentSpec);
         }
+        // paths is required in both versions, so no need to check
+        resultSpec.paths = mergePaths(resultSpec, currentSpec);
     }
     return resultSpec;
 }
@@ -108,7 +110,7 @@ exports.mergeTags = mergeTags;
  * @export
  * @param {SwaggerSpec} left
  * @param {SwaggerSpec} right
- * @returns {object}
+ * @returns {{ [key: string]: object }}
  */
 function mergePaths(left, right) {
     const resultPaths = left.paths || {};
@@ -120,6 +122,24 @@ function mergePaths(left, right) {
                 throw new DuplicatePathError(`Path ${finalPath} is redeclared in ${right.info.title}`);
             }
             resultPaths[finalPath] = right.paths[path];
+            // copy global security to each path that doesn't have it
+            if (right.hasOwnProperty('security')) {
+                for (const method in resultPaths[finalPath]) {
+                    switch (method) {
+                        case 'get':
+                        case 'post':
+                        case 'put':
+                        case 'delete':
+                        case 'options':
+                        case 'head':
+                        case 'patch':
+                            if (!resultPaths[finalPath][method].hasOwnProperty('security')) {
+                                resultPaths[finalPath][method].security = right.security;
+                            }
+                        default:
+                    }
+                }
+            }
         }
     }
     return resultPaths;

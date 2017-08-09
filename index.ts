@@ -82,6 +82,9 @@ export function merge(specs: SwaggerSpec[]): SwaggerSpec {
     if (currentSpec.hasOwnProperty('securityDefinitions')) {
       resultSpec.securityDefinitions = mergeSecurityDefinitions(resultSpec, currentSpec);
     }
+
+    // paths is required in both versions, so no need to check
+    resultSpec.paths = mergePaths(resultSpec, currentSpec);
   }
 
   return resultSpec;
@@ -140,9 +143,9 @@ export function mergeTags(left: SwaggerSpec, right: SwaggerSpec): string[] {
  * @export
  * @param {SwaggerSpec} left
  * @param {SwaggerSpec} right
- * @returns {object}
+ * @returns {{ [key: string]: object }}
  */
-export function mergePaths(left: SwaggerSpec, right: SwaggerSpec): object {
+export function mergePaths(left: SwaggerSpec, right: SwaggerSpec): { [key: string]: object } {
   const resultPaths = left.paths || {};
 
   if (right.hasOwnProperty('paths')) {
@@ -154,6 +157,26 @@ export function mergePaths(left: SwaggerSpec, right: SwaggerSpec): object {
       }
 
       resultPaths[finalPath] = right.paths[path];
+
+      // copy global security to each path that doesn't have it
+      if (right.hasOwnProperty('security')) {
+        for (const method in resultPaths[finalPath]) {
+          switch (method) {
+            case 'get':
+            case 'post':
+            case 'put':
+            case 'delete':
+            case 'options':
+            case 'head':
+            case 'patch':
+              if (!resultPaths[finalPath][method].hasOwnProperty('security')) {
+                resultPaths[finalPath][method].security = right.security;
+              }
+            default:
+              // do nothing
+          }
+        }
+      }
     }
   }
 

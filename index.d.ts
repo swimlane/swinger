@@ -113,6 +113,8 @@ export declare function mergeTags(left: SwaggerSpec, right: SwaggerSpec): string
  * @export
  * @param {SwaggerSpec} left
  * @param {SwaggerSpec} right
- * @returns {object}
+ * @returns {{ [key: string]: object }}
  */
-export declare function mergePaths(left: SwaggerSpec, right: SwaggerSpec): object;
+export declare function mergePaths(left: SwaggerSpec, right: SwaggerSpec): {
+    [key: string]: object;
+};

@@ -239,5 +239,47 @@ describe('Swinger Swagger Aggregator', () => {
 
       done();
     });
+
+    it('should copy global security into each path it applies to', (done) => {
+      const pathSpec1 = {
+        info: { title: 'foo' },
+        swagger: '2.0',
+        paths: {
+          '/foo': {
+            get: {}
+          }
+        }
+      };
+
+      const pathSpec2 = {
+        info: { title: 'foo' },
+        swagger: '2.0',
+        basePath: '/fizz',
+        security: {
+          basic: []
+        },
+        paths: {
+          '/bar': {
+            get: {}
+          }
+        }
+      };
+
+      const merged = swinger.mergePaths(pathSpec1, pathSpec2);
+      expect(merged).to.deep.equal({
+        '/foo': {
+          get: {}
+        },
+        '/fizz/bar': {
+            get: {
+              security: {
+                basic: []
+              }
+            }
+          }
+      });
+
+      done();
+    });
   });
 });
