@@ -19,7 +19,7 @@ Swinger merges multiple swagger specifications into a single file. This allows y
 
 ## Install
 
-`npm install swinger`
+`npm install @swimlane/swinger`
 
 ## Usage
 
