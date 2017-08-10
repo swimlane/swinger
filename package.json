@@ -1,5 +1,5 @@
 {
-  "name": "swinger",
+  "name": "@swimlane/swinger",
   "version": "1.0.0",
   "description": "Aggregate multiple swagger specs into a single file. Useful when providing a combined definition for multiple microservices",
   "main": "index.js",
