@@ -1,5 +1,8 @@
 # Swinger
 
+> ⚠️ **This project is not maintained any longer. Please feel free to fork it if you need to make changes to the library.** ⚠️
+
+\
 [![Build Status](https://travis-ci.org/swimlane/swinger.svg?branch=master)](https://travis-ci.org/swimlane/swinger) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c13a68ee85a14c029d180154549ab829)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=swimlane/swinger&amp;utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/c13a68ee85a14c029d180154549ab829)](https://www.codacy.com?utm_source=github.com&utm_medium=referral&utm_content=swimlane/swinger&utm_campaign=Badge_Coverage)
 
 Swagger aggregation for microservices!
